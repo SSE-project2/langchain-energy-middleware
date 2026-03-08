@@ -1,7 +1,7 @@
 from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
-from middleware import log_tokens, CustomState
+from middleware import CustomState, EnergyMiddleware
 from reporting import get_total_energy_usage
 
 # Basic multiagent setup for testing
@@ -13,17 +13,19 @@ def get_weather(city: str) -> str:
     """Get weather for a given city."""
     return f"The weather in {city} is rainy and 21.7 degrees celcius"
 
-SUBAGENT_SYSTEM_PROMPT = """You are a helpful assistant. You are an expert at researching the weather.
+SUBAGENT_SYSTEM_PROMPT = """You are a helpful assistant. You are an expert at researching the weather. Respond in a whimsical tone.
 You have the following tools:
 - get_weather: this tool takes a city as input and returns the weather in that city.
 """
+
+tracker = EnergyMiddleware()
 
 subagent = create_agent(
     model=ChatOllama(model="qwen3.5"),
     tools=[get_weather],
     system_prompt=SUBAGENT_SYSTEM_PROMPT,
-    middleware=[log_tokens],
-    state_schema=CustomState
+    middleware=[tracker],
+    # state_schema=CustomState
 )
 
 @tool("weather", description="Research the weather and return findings")
@@ -32,7 +34,7 @@ def call_weather_agent(query: str) -> str:
     return result["messages"][-1].content
 
 MAIN_SYSTEM_PROMPT = """
-You are a helpful assistant.
+You are a helpful assistant. Respond in a serious tone.
 
 You have access to the following tools:
 - call_weather_agent: this calls another agent that will research the weather in a city when asked. Make sure to specify the name of the city.
@@ -42,8 +44,8 @@ main_agent = create_agent(
     model=ChatOllama(model="qwen3.5"),
     tools=[call_weather_agent],
     system_prompt=MAIN_SYSTEM_PROMPT,
-    middleware=[log_tokens],
-    state_schema=CustomState # Maybe we can find a way to avoid having this here? Ideally we would just use it in the middleware
+    middleware=[tracker],
+    # state_schema=CustomState
 )
 
 response = main_agent.invoke(
@@ -54,10 +56,10 @@ response = main_agent.invoke(
 
 print(response["messages"][-1].content)
 
-print(f"Current estimated energy usage: {get_total_energy_usage(response['outputs'])}")
+print(f"Current estimated energy usage: {tracker.get_report()}")
 
 # TODO:
-# - Get the metrics not just for the main agent but also for all subagents. We could just add all datapoints together, but I think it would be better to associate the sub-prompts with the main prompt that called them.
+# - Right now all data points are added together, but I think it would be better to associate the sub-prompts with the main prompt that called them.
 # - Find more realistic power estimates
 # - A better way to manage the state? Also maybe a nicer API to get metrics from the state/model.
 # - Feed metrics back into the agent. Maybe do this automatically every N steps through middleware or just give it a tool to check itself. Or maybe in the context?
