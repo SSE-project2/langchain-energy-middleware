@@ -1,11 +1,8 @@
-import uuid
-
 from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 
-from context_var import prompt_id_var
-from middleware import EnergyMiddleware, CustomState
+from middleware import EnergyMiddleware
 from reporting import present_results
 
 
@@ -30,12 +27,11 @@ subagent = create_agent(
     tools=[get_weather],
     system_prompt=SUBAGENT_SYSTEM_PROMPT,
     middleware=[tracker],
-    state_schema=CustomState
 )
 
 @tool("weather", description="Research the weather and return findings")
 def call_weather_agent(query: str) -> str:
-    result = subagent.invoke({"messages": [{"role": "user", "content": query}], 'prompt_id': prompt_id_var.get()})
+    result = subagent.invoke({"messages": [{"role": "user", "content": query}]})
     return result["messages"][-1].content
 
 MAIN_SYSTEM_PROMPT = """
@@ -50,18 +46,11 @@ main_agent = create_agent(
     tools=[call_weather_agent],
     system_prompt=MAIN_SYSTEM_PROMPT,
     middleware=[tracker],
-    state_schema=CustomState
 )
-
-prompt_id = str(uuid.uuid4())
-prompt_id_var.set(prompt_id)
 
 response = main_agent.invoke(
-    {"messages": [{"role": "user", "content": "what is the weather in Amsterdam?"}],
-     'prompt_id': prompt_id}
+    {"messages": [{"role": "user", "content": "what is the weather in Amsterdam?"}]}
 )
-
-# print(response["messages"][-1].content)
 
 present_results(tracker.get_report())
 
