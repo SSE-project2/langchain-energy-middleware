@@ -26,6 +26,7 @@ subagent = create_agent(
     tools=[get_weather],
     system_prompt=SUBAGENT_SYSTEM_PROMPT,
     middleware=[tracker],
+    name="weather_subagent"
 )
 
 @tool("weather", description="Research the weather and return findings")
@@ -45,6 +46,7 @@ main_agent = create_agent(
     tools=[call_weather_agent],
     system_prompt=MAIN_SYSTEM_PROMPT,
     middleware=[tracker],
+    name="main_agent"
 )
 
 response = main_agent.invoke(
