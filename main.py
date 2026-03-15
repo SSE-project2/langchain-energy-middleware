@@ -2,227 +2,154 @@ from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 from middleware import EnergyMiddleware
-from reporting import get_total_energy_usage
-import random
-from datetime import datetime, timedelta
 
-# Basic multiagent setup for testing
-# https://dev.to/fabiothiroki/run-langchain-locally-in-15-minutes-without-a-single-api-key-1j8m
-# https://docs.langchain.com/oss/python/langchain/multi-agent/subagents
-
-@tool("get_weather_report", description="Retrieve detailed hourly weather report for a city")
-def get_weather(city: str) -> dict:
-    days = []
-    stations = ["AMS1", "AMS2", "AMS3"]
-    models = ["ECMWF", "GFS", "HIRLAM"]
-    
-    start_date = datetime.today()
-    total_days = 7
-
-    for day_index in range(total_days):
-        day_date = start_date + timedelta(days=day_index)
-        hours = []
-
-        for h in range(0, 24):
-            # Base values for this hour
-            base_temp = 17 + random.uniform(-4, 7)
-            base_rain_prob = random.uniform(0, 1)
-            base_wind = random.uniform(5, 35)
-
-            for station in stations:
-                for model in models:
-                    hours.append({
-                        "hour": f"{h:02d}:00",
-                        "station_id": station,
-                        "forecast_model": model,
-                        "temperature_c": round(base_temp + random.uniform(-1.0, 1.0), 1),
-                        "feels_like_c": round(base_temp + random.uniform(-2.0, 2.0), 1),
-                        "rain_probability": round(
-                            min(max(base_rain_prob + random.uniform(-0.1, 0.1), 0), 1), 2
-                        ),
-                        "rain_mm": round(random.uniform(0, 8) * base_rain_prob, 1),
-                        "wind_kmh": round(base_wind + random.uniform(-3, 3), 1),
-                        "wind_gust_kmh": round(base_wind + random.uniform(5, 15), 1),
-                        "humidity": random.randint(55, 98),
-                        "visibility_km": round(random.uniform(2, 10), 1),
-                        "cloud_cover_percent": random.randint(5, 100),
-                        "conditions": random.choice([
-                            "clear",
-                            "cloudy",
-                            "light rain",
-                            "showers",
-                            "overcast",
-                            "mist"
-                        ]),
-                        "confidence": round(random.uniform(0.7, 0.98), 2)
-                    })
-
-        days.append({
-            "date": day_date.strftime("%Y-%m-%d"),
-            "hours": hours
-        })
-
-    return {
-        "city": city,
-        "metadata": {
-            "generated_by": "SyntheticWeatherSim v3.0",
-            "forecast_models_used": models,
-            "data_points": sum(len(day['hours']) for day in days),
-            "generation_time": "simulated"
-        },
-        "units": {
-            "temperature": "C",
-            "rain": "mm",
-            "wind": "km/h",
-            "visibility": "km"
-        },
-        "daily_summary": {
-            "sunrise": "06:48",
-            "sunset": "18:31",
-            "uv_index": random.randint(1, 5),
-            "pressure_hpa": random.randint(1005, 1025)
-        },
-        "forecast_days": days
-    }
-
-SUBAGENT_SYSTEM_PROMPT = """
-You are a meteorological analysis assistant.
-
-You receive detailed structured weather reports produced by multiple weather
-stations and forecast models. For each hour there may be multiple observations
-from different stations and models.
-
-Each observation may contain:
-- temperature and feels_like temperature
-- rain probability and expected rainfall
-- wind speed and wind gusts
-- humidity and visibility
-- cloud cover and general conditions
-- the station ID and forecast model that produced the observation
-- a confidence score
-
-The data may contain minor variations between stations and models. Your task
-is to interpret the overall weather situation rather than focusing on a single
-data point.
-
-When answering a user question:
-
-1. Identify the relevant time range mentioned in the question
-   (for example: morning, afternoon, evening, tonight, or a specific hour).
-
-2. For each relevant hour, consider multiple observations from different
-   stations and forecast models and determine the overall trend or consensus.
-
-3. Pay particular attention to:
-   - rain probability and rainfall amount
-   - wind speed and gusts
-   - visibility
-   - temperature and feels-like temperature
-   - any weather alerts
-
-4. Ignore irrelevant metadata such as station IDs unless it helps explain
-   uncertainty in the forecast.
-
-5. Summarize the weather clearly and concisely in natural language.
-
-Focus on giving a useful interpretation of the data rather than repeating
-the raw values.
-"""
+import io
+import contextlib
+import traceback
 
 tracker = EnergyMiddleware()
 
-def create_weather_subagent(model_name: str):
-    return create_agent(
-        model=ChatOllama(model=model_name),
-        tools=[get_weather],
-        system_prompt=SUBAGENT_SYSTEM_PROMPT,
-        middleware=[tracker],
-    )
+# -----------------------------
+# MATHS SUBAGENT
+# -----------------------------
 
-MODEL_TIERS = {
-    "large": "qwen3.5:9b",
-    "medium": "qwen3.5:4b",
-    "small": "qwen3.5:2b"
-}
+@tool("calculate", description="Evaluate a mathematical expression")
+def calculate(expression: str) -> str:
+    return str(eval(expression))
 
-weather_agents = {
-    "large": create_weather_subagent(MODEL_TIERS["large"]),
-    "medium": create_weather_subagent(MODEL_TIERS["medium"]),
-    "small": create_weather_subagent(MODEL_TIERS["small"]),
-}
+MATH_SYSTEM_PROMPT = """
+You are a mathematics expert.
 
-def make_weather_tool(tier, agent):
-    @tool(f"weather_{tier}", description=f"Use the {tier} accuracy weather research model")
-    def call_agent(query: str) -> str:
-        result = agent.invoke({
-            "messages": [{"role": "user", "content": query}]
-        })
-        return result["messages"][-1].content
+You specialize in solving mathematical and numerical problems such as:
+- arithmetic
+- algebra
+- basic calculus
+- statistics
 
-    return call_agent
+You have access to the following tool:
 
-weather_tools = [
-    make_weather_tool(tier, agent)
-    for tier, agent in weather_agents.items()
-]
+calculate
+- evaluates a mathematical expression and returns the result.
+
+Use the calculate tool whenever an exact numerical computation is needed.
+
+Explain your reasoning clearly. If the problem involves computation, you may first reason about the steps and then use the tool to obtain the final value.
+
+If the question is not related to mathematics, say that you are a math specialist and cannot answer it.
+"""
+
+math_agent = create_agent(
+    model=ChatOllama(model="qwen3.5:4b"),
+    tools=[calculate],
+    system_prompt=MATH_SYSTEM_PROMPT,
+    middleware=[tracker],
+)
+
+@tool("math_agent", description="Solve mathematical or numerical problems")
+def call_math_agent(query: str) -> str:
+    result = math_agent.invoke({
+        "messages": [{"role": "user", "content": query}]
+    })
+    return result["messages"][-1].content
 
 
-MAIN_SYSTEM_PROMPT = f"""
-You are an assistant that answers user questions while managing energy consumption.
+# -----------------------------
+# CODING SUBAGENT
+# -----------------------------
 
-You do NOT directly analyze weather data yourself. Instead, you must decide
-which specialized weather analysis agent to call.
+@tool("run_python", description="Execute Python code and return output or errors")
+def run_python(code: str) -> str:
 
-Available weather analysis agents:
-- weather_small  : lowest energy cost, suitable for simple questions
-- weather_medium : moderate energy cost, suitable for moderately complex analysis
-- weather_large  : highest energy cost, suitable for complex reasoning over large weather reports
+    stdout = io.StringIO()
 
-Decision strategy:
+    try:
+        with contextlib.redirect_stdout(stdout):
+            exec(code, {})
+        return stdout.getvalue() or "Program executed successfully."
 
-1. Analyze the user's question and estimate its complexity. Consider aspects such as:
-   - Does the question ask for a simple summary of the weather?
-   - Does it require analyzing multiple hours of forecast data?
-   - Does it require comparing wind, rain, and temperature to make a recommendation?
-   - Does it require identifying trends or optimal times during the day?
+    except Exception:
+        return traceback.format_exc()
 
-2. Estimate how much reasoning and analysis will be required.
+CODING_SYSTEM_PROMPT = """
+You are an expert software engineer.
 
-3. Select the cheapest weather agent that can reliably answer the question given its estimated complexity.
+You help with:
+- writing code
+- debugging programs
+- explaining program behavior
+- fixing errors
 
-General complexity guidelines:
+You have access to the tool:
 
-Low complexity:
-- Simple weather summaries
-- Questions about current temperature or conditions
-→ Use weather_small
+run_python
+- executes Python code and returns the printed output or any errors.
 
-Medium complexity:
-- Questions about weather conditions during a small time range
-- Requires scanning several hours of forecast
-→ Use weather_medium
+Use this tool when running the code would help understand what it does or diagnose a problem.
 
-High complexity:
-- Recommendation questions
-- Requires comparing multiple weather variables across multiple hours
-→ Use weather_large
+Prefer Python unless another language is explicitly requested.
 
-Today is {datetime.today()}. Always try to minimize energy usage while still providing a useful answer.
+If the question is unrelated to programming or software development, say that you are a coding specialist and cannot answer it.
+"""
+
+coding_agent = create_agent(
+    model=ChatOllama(model="qwen3.5:4b"),
+    tools=[run_python],
+    system_prompt=CODING_SYSTEM_PROMPT,
+    middleware=[tracker],
+)
+
+@tool("coding_agent", description="Answer programming or coding questions")
+def call_coding_agent(query: str) -> str:
+    result = coding_agent.invoke({
+        "messages": [{"role": "user", "content": query}]
+    })
+    return result["messages"][-1].content
+
+
+# -----------------------------
+# MAIN ROUTER AGENT
+# -----------------------------
+
+MAIN_SYSTEM_PROMPT = """
+You are an intelligent assistant that answers the user's question. You may either answer directly or delegate the task to a specialized agent if their expertise would help.
+
+Available specialized agents:
+
+math_agent
+- expert in mathematics and numerical reasoning
+- has access to a calculator tool for evaluating expressions
+
+coding_agent
+- expert in programming and software engineering
+- can execute Python code to inspect program behavior or debug errors
+
+If the question is simple or unrelated to these domains, answer it yourself. Otherwise route the question to the most appropriate agent.
 """
 
 main_agent = create_agent(
-    model=ChatOllama(model="qwen3.5:9b"),
-    tools=weather_tools,
+    model=ChatOllama(model="qwen3.5:2b"),
+    tools=[call_math_agent, call_coding_agent],
     system_prompt=MAIN_SYSTEM_PROMPT,
     middleware=[tracker],
 )
 
-response = main_agent.invoke(
-    {"messages": [{"role": "user", "content": "What's the weather like today between 2 PM and 4 PM?"}]}
-)
+# -----------------------------
+# TEST QUERY
+# -----------------------------
 
+response = main_agent.invoke({
+    "messages": [
+        {"role": "user", "content": """What does this Python program output? 
+         ```python
+         def mystery(n):
+            if n <= 1:
+                return n
+            return mystery(n-1) + mystery(n-2)
+
+        print(mystery(10))"""}
+    ]
+})
 
 print(response["messages"][-1].content)
 
 print(f"Current estimated energy usage: {tracker.get_report()}")
-
