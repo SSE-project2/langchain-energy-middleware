@@ -1,11 +1,11 @@
 import datetime
-from langchain.agents.middleware import after_model, AgentState, AgentMiddleware
+import threading
+import uuid
 from typing import Any
+
+from langchain.agents.middleware import AgentState, AgentMiddleware
 from langgraph.runtime import Runtime
 from pydantic import BaseModel
-from typing import Annotated
-from operator import add
-import threading
 
 class Datapoint(BaseModel):
     input_token_count: int
@@ -15,28 +15,53 @@ class Datapoint(BaseModel):
     model_name: str
     timestamp: datetime.datetime
     message: str
+    prompt_id: str
 
-# class CustomState(AgentState):
-#     outputs: Annotated[list[Datapoint], add] = []
 
 class EnergyMiddleware(AgentMiddleware):
     def __init__(self):
         super().__init__()
         self.datapoints: list[Datapoint] = []
         self._lock = threading.Lock()
+        self._prompt_id_stack: list[str] = [] # Could also be replaced by a field and a counter.
 
+    @property
+    def _current_prompt_id(self) -> str | None:
+        with self._lock:
+            return self._prompt_id_stack[-1] if self._prompt_id_stack else None
+
+    def before_agent(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        existing_id = self._current_prompt_id
+
+        if existing_id:
+            with self._lock:
+                self._prompt_id_stack.append(existing_id)
+            return None
+
+        new_id = str(uuid.uuid4())
+        with self._lock:
+            self._prompt_id_stack.append(new_id)
+        return None
+
+    def after_agent(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        with self._lock:
+            if self._prompt_id_stack:
+                self._prompt_id_stack.pop()
+        return None
 
     def after_model(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
-
-        last_message = state['messages'][-1]
+        last_message = state["messages"][-1]
         model_name = last_message.response_metadata.get("model_name", "unknown_model")
         input_token_count = last_message.usage_metadata.get("input_tokens", 0)
         output_token_count = last_message.usage_metadata.get("output_tokens", 0)
 
         if last_message.content is None or not str(last_message.content).strip():
             return None
-        
+
         energy, co2e = estimate_energy_and_emissions(input_token_count, output_token_count, model_name)
+
+        prompt_id = self._current_prompt_id
+
         output_datapoint = Datapoint(
             input_token_count=input_token_count,
             output_token_count=output_token_count,
@@ -44,11 +69,14 @@ class EnergyMiddleware(AgentMiddleware):
             estimated_co2e_kg=co2e,
             model_name=model_name,
             timestamp=datetime.datetime.now(),
-            message=str(last_message.content)[:100]
+            message=str(last_message.content)[:100],
+            prompt_id=prompt_id,
         )
         with self._lock:
             self.datapoints.append(output_datapoint)
-    
+
+        return None
+
     def get_report(self) -> list[Datapoint]:
         with self._lock:
             return self.datapoints.copy()
@@ -72,16 +100,6 @@ class EnergyMiddleware(AgentMiddleware):
                 result[dp.model_name] += dp.estimated_energy_joule
         return result
 
-
-
-@after_model
-def log_response(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
-    last_message = state['messages'][-1]
-    
-    # Only log if there is actual text content
-    if last_message.content and str(last_message.content).strip():
-        print(f"Model returned: \n------\n {last_message.content}\n------")
-    return None
 
 
 def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: str) -> tuple[float, float]:
