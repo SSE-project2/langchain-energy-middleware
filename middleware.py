@@ -37,7 +37,6 @@ class EnergyMiddleware(AgentMiddleware):
             return None
         
         energy, co2e = estimate_energy_and_emissions(input_token_count, output_token_count, model_name)
-
         output_datapoint = Datapoint(
             input_token_count=input_token_count,
             output_token_count=output_token_count,
@@ -85,8 +84,6 @@ def log_response(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
     return None
 
 
-
-
 def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: str) -> tuple[float, float]:
     # Carbon Intensity
     # Global average carbon intensity: 0.45 kg CO2 / kWh
@@ -107,7 +104,8 @@ def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: 
     # Assumes dense models
     # More models could be added later, the number of parameters is usually in the name.
     MODEL_PARAMETERS = {
-        "qwen3.5": 9_000_000_000,
+        "qwen3.5:4b": 4_000_000_000,
+        "qwen3.5:2b": 2_000_000_000,
     }
 
     # I have sources for the numbers above
