@@ -6,7 +6,8 @@ Note this currently needs a beefy GPU. In the future should make an option to us
 - Configure & activate a venv
 - `pip install -r requirements`
 - Download ollama: https://ollama.com/download
-- `ollama pull qwen3.5:9b`
+- `ollama pull qwen3.5:4b`
+- `ollama pull qwen3.5:2b`
 - In a separate terminal: `ollama serve` (might already be running)
 - `ollama ps` to see if model is running, otherwise start with `ollama run qwen3.5`
 - `python3 main.py` to run a hardcoded test query
