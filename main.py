@@ -2,11 +2,11 @@ from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 from middleware import EnergyMiddleware
+from sympy import sympify
 
 import io
 import contextlib
 import traceback
-from sympy import sympify
 
 tracker = EnergyMiddleware()
 

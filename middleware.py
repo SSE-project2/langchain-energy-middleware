@@ -11,7 +11,7 @@ class Datapoint(BaseModel):
     input_token_count: int
     output_token_count: int
     estimated_energy_joule: float
-    estimated_co2e_gram: float
+    estimated_co2e_kg: float
     model_name: str
     timestamp: datetime.datetime
     message: str
@@ -41,7 +41,7 @@ class EnergyMiddleware(AgentMiddleware):
             input_token_count=input_token_count,
             output_token_count=output_token_count,
             estimated_energy_joule=energy,
-            estimated_co2e_gram=co2e,
+            estimated_co2e_kg=co2e,
             model_name=model_name,
             timestamp=datetime.datetime.now(),
             message=str(last_message.content)[:100]
@@ -52,6 +52,25 @@ class EnergyMiddleware(AgentMiddleware):
     def get_report(self) -> list[Datapoint]:
         with self._lock:
             return self.datapoints.copy()
+
+    def total_energy(self) -> float:
+        """ Returns the sum of energy in the list of data points. """
+        with self._lock:
+            return sum(dp.estimated_energy_joule for dp in self.datapoints)
+
+    def total_co2(self) -> float:
+        """ Returns the sum of carbon dioxide emissions in the list of data points. """
+        with self._lock:
+            return sum(dp.estimated_co2e_kg for dp in self.datapoints)
+
+    def breakdown_by_model(self) -> dict[str, float]:
+        """ Returns a breakdown of energy consumption grouped by model. """
+        result = {}
+        with self._lock:
+            for dp in self.datapoints:
+                result.setdefault(dp.model_name, 0)
+                result[dp.model_name] += dp.estimated_energy_joule
+        return result
 
 
 
@@ -65,36 +84,43 @@ def log_response(state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
     return None
 
 
-def get_model_costs() -> dict[str, dict[str, float]]:
-    # These numbers are also made up for now
-    return {
-        "qwen3.5:9b": {
-            "input_token_energy": 0.00003,
-            "output_token_energy": 0.00012
-        },
-        "qwen3.5:4b": {
-            "input_token_energy": 0.000015,
-            "output_token_energy": 0.00006
-        },
-        "qwen3.5:2b": {
-            "input_token_energy": 0.000007,
-            "output_token_energy": 0.000028
-        }
+def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: str) -> tuple[float, float]:
+    # Carbon Intensity
+    # Global average carbon intensity: 0.45 kg CO2 / kWh
+    # Conversion: 1 kWh = 3,600,000 Joules
+    # 0.45 / 3,600,000 ≈ 1.25e-7 kg CO2 per Joule
+    co2e_per_joule = 1.25e-7  # kg CO2 per Joule
+
+    # Hardware Efficiency Assumption (Consumer GPU Baseline) NVIDIA RTX 4070 specifications obtained online
+    # FP16 (half precision) throughput: 29.15 TFLOPs
+    # TDP (Thermal Design Power): 200 W
+    #
+    # FLOPs per Joule = FLOPs per second / Watts = (29.15e12 FLOPs/s) / 200 W
+    # ≈ 1.46e11 FLOPs per Joule (theoretical peak)
+    FLOPS_PER_JOULE = 1.46e11  # RTX 4070 FP16 peak efficiency
+
+    # Transformer Inference Compute Approximation used in transformer literature:
+    # FLOPs per token ≈ 2 × number_of_parameters (Forward pass only; training typically ≈ 6P)
+    # Assumes dense models
+    # More models could be added later, the number of parameters is usually in the name.
+    MODEL_PARAMETERS = {
+        "qwen3.5:4b": 4_000_000_000,
+        "qwen3.5:2b": 2_000_000_000,
     }
 
+    # I have sources for the numbers above
 
-def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: str) -> tuple[float, float]:
-    # These numbers are totally made up for now
+    params = MODEL_PARAMETERS.get(model, 0)
+    total_tokens = input_tokens + output_tokens
 
-    co2e_per_joule = 0.0000005
+    # Total FLOPs for inference
+    total_flops = 2 * params * total_tokens
 
-    # In format: (energy per input token, energy per output token)
-    model_costs = get_model_costs()[model]
-    
-    input_energy = input_tokens * model_costs["input_token_energy"]
-    output_energy = output_tokens * model_costs["output_token_energy"]
-    total_energy = input_energy + output_energy
-    co2e = total_energy * co2e_per_joule
+    # Convert compute to energy
+    total_energy = total_flops / FLOPS_PER_JOULE  # Joules
+
+    # Convert energy to CO2
+    co2e = total_energy * co2e_per_joule  # kg CO2
 
     return total_energy, co2e
 
