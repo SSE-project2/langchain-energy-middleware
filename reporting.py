@@ -12,7 +12,7 @@ def present_results(report: list[Datapoint]) -> None:
         for dp in points:
             print(f"  [{dp.model_name}] {dp.message}")  # If we have multiple models for the sub-prompts, that will change here
             print(f'  Energy: {dp.estimated_energy_joule} J')
-            print(f'  CO2: {dp.estimated_co2e_gram} gCO2e')
+            print(f'  CO2: {dp.estimated_co2e_kg} gCO2e')
             print(f'  Input: {dp.input_token_count} tokens')
             print(f'  Output: {dp.output_token_count} tokens')
             print(f'  Timestamp: {dp.timestamp}\n')
