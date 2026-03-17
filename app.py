@@ -1,5 +1,6 @@
 import streamlit as st
 from agents import main_agent, tracker
+from reporting import present_results
 
 st.title("Agent chat")
 
@@ -22,7 +23,7 @@ if prompt:
     answer = response["messages"][-1].content
 
     print(answer)
-    print(f"Current estimated energy usage: {tracker.get_report()}")
+    present_results(tracker.get_report())
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
     with st.chat_message("assistant"):
