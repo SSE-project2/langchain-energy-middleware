@@ -3,7 +3,7 @@ from collections import defaultdict
 from middleware import Datapoint
 
 def present_results(report: list[Datapoint]) -> None:
-    grouped = defaultdict(list)
+    grouped: dict[str, list[Datapoint]] = defaultdict(list[Datapoint])
     for dp in report:
         grouped[dp.prompt_id].append(dp)
 
@@ -15,5 +15,6 @@ def present_results(report: list[Datapoint]) -> None:
             print(f'  CO2: {dp.estimated_co2e_kg} gCO2e')
             print(f'  Input: {dp.input_token_count} tokens')
             print(f'  Output: {dp.output_token_count} tokens')
-            print(f'  Timestamp: {dp.timestamp}')
+            print(f'  Timestamp: {dp.timestamp}\n')
             print(f'  Prompt ID: {dp.prompt_id}\n')
+            print(f'  Agent Name: {dp.agent_name}\n')

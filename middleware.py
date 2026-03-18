@@ -6,6 +6,7 @@ from typing import Any
 from langchain.agents.middleware import AgentState, AgentMiddleware
 from langgraph.runtime import Runtime
 from pydantic import BaseModel
+from langgraph.config import get_config
 
 class Datapoint(BaseModel):
     input_token_count: int
@@ -16,6 +17,7 @@ class Datapoint(BaseModel):
     timestamp: datetime.datetime
     message: str
     prompt_id: str
+    agent_name: str
 
 
 class EnergyMiddleware(AgentMiddleware):
@@ -55,6 +57,9 @@ class EnergyMiddleware(AgentMiddleware):
         input_token_count = last_message.usage_metadata.get("input_tokens", 0)
         output_token_count = last_message.usage_metadata.get("output_tokens", 0)
 
+        config = get_config()
+        agent_name = config["metadata"].get("lc_agent_name", "unknown_agent") if config and "metadata" in config else "unknown_agent"
+
         if last_message.content is None or not str(last_message.content).strip():
             return None
 
@@ -71,6 +76,7 @@ class EnergyMiddleware(AgentMiddleware):
             timestamp=datetime.datetime.now(),
             message=str(last_message.content)[:100],
             prompt_id=prompt_id,
+            agent_name=agent_name,
         )
         with self._lock:
             self.datapoints.append(output_datapoint)
