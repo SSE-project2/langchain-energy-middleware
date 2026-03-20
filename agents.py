@@ -52,6 +52,7 @@ math_agent = create_agent(
     tools=[calculate],
     system_prompt=MATH_SYSTEM_PROMPT,
     middleware=[tracker],
+    name="math_agent",
 )
 
 @tool("math_agent", description="Solve mathematical or numerical problems")
@@ -105,6 +106,7 @@ coding_agent = create_agent(
     tools=[run_python],
     system_prompt=CODING_SYSTEM_PROMPT,
     middleware=[tracker],
+    name="coding_agent",
 )
 
 @tool("coding_agent", description="Answer programming or coding questions")
@@ -140,4 +142,5 @@ main_agent = create_agent(
     tools=[call_math_agent, call_coding_agent],
     system_prompt=MAIN_SYSTEM_PROMPT,
     middleware=[tracker],
+    name="main_agent",
 )
