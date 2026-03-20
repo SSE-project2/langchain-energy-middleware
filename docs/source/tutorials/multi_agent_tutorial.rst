@@ -1,19 +1,33 @@
-Tutorial: Using EnergyMiddleware with Multi-Agent Setup
+Using EnergyMiddleware with Multi-Agent Setup
 =======================================================
 
 This tutorial demonstrates how to use **EnergyMiddleware** to track energy and CO₂ usage
-in a multi-agent LangChain setup with Python and math subagents.
+in a multi-agent LangChain setup with Python and math subagents. 
 
 Prerequisites
 -------------
 
-Make sure you have the following modules installed:
+We will be using Ollama models in this tutorial, so make sure you have it installed. It can be downloaded from https://ollama.com/.
+Additionally, make sure you have the following modules installed:
 
 - ``langchain``
 - ``langchain_ollama``
 - ``sympy``
-- ``middleware`` (:class:`middleware.EnergyMiddleware`)
-- ``reporting`` (:func:`reporting.present_results`)
+- ``energy_middleware``
+
+During this tutorial, we will use ``qwen3.5:4b`` for the subagents, and ``qwen3.5:2b`` for the main agent, to simulate a situation where the main agent is slightly less powerful than the subagents. However, you can use any models you have available.
+To set up the Ollama models, you can run the following commands in your terminal:
+
+.. code-block:: bash
+
+    ollama pull qwen3.5:4b
+    ollama pull qwen3.5:2b
+    
+These can then be started by running:
+
+.. code-block:: bash
+
+    ollama run qwen3.5
 
 
 Setup EnergyMiddleware
@@ -23,7 +37,7 @@ Initialize the tracker:
 
 .. code-block:: python
 
-    from middleware import EnergyMiddleware
+    from energy_middleware.middleware import EnergyMiddleware
 
     tracker = EnergyMiddleware()
 
@@ -218,9 +232,8 @@ Testing Queries
 Example: execute a Python program and track energy usage:
 
 .. code-block:: python
-
-    from agents import main_agent, tracker
-    from reporting import present_results
+    
+    from energy_middleware.reporting import present_results
 
     response = main_agent.invoke({
         "messages": [

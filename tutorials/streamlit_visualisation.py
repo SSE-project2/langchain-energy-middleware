@@ -1,6 +1,6 @@
 import streamlit as st
-from agents import main_agent, tracker
-from reporting import present_results
+from sample_agents import main_agent, tracker
+from energy_middleware.reporting import present_results
 
 st.title("Agent chat")
 

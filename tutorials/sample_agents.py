@@ -2,7 +2,7 @@ from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 
-from middleware import EnergyMiddleware
+from energy_middleware.middleware import EnergyMiddleware
 from sympy import sympify
 import io
 import contextlib

@@ -5,7 +5,7 @@ from typing import Any
 
 from langchain.agents.middleware import AgentState, AgentMiddleware
 from langgraph.runtime import Runtime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from langgraph.config import get_config
 
 class Datapoint(BaseModel):

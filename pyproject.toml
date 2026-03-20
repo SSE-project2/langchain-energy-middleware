@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "energy-middleware"
+version = "0.1.0"
+description = "Energy and CO2 tracking middleware for LLM agents"
+
+[tool.setuptools.packages.find]
+where = ["src"]
