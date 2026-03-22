@@ -2,11 +2,12 @@ from langchain.tools import tool
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 
-from energy_middleware.middleware import EnergyMiddleware
 from sympy import sympify
 import io
 import contextlib
 import traceback
+
+from src.energy_middleware.middleware import EnergyMiddleware
 
 # Basic multiagent setup for testing
 # https://dev.to/fabiothiroki/run-langchain-locally-in-15-minutes-without-a-single-api-key-1j8m

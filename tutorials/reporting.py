@@ -1,6 +1,7 @@
 from collections import defaultdict
 
-from energy_middleware.middleware import Datapoint
+from src.energy_middleware.middleware import Datapoint
+
 
 def present_results(report: list[Datapoint]) -> None:
     """
@@ -20,7 +21,7 @@ def present_results(report: list[Datapoint]) -> None:
     for prompt_id, points in grouped.items():
         print(f"\nPrompt [{prompt_id}]:")
         for dp in points:
-            print(f"  [{dp.model_name}] {dp.message}")  # If we have multiple models for the sub-prompts, that will change here
+            print(f"  [{dp.model_name}] {dp.message}")
             print(f'  Energy: {dp.estimated_energy_joule} J')
             print(f'  CO2: {dp.estimated_co2e_kg} gCO2e')
             print(f'  Input: {dp.input_token_count} tokens')

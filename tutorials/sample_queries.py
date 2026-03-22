@@ -1,29 +1,31 @@
 from sample_agents import main_agent, tracker
-from energy_middleware.reporting import present_results
+from tutorials.reporting import present_results
 
 # -----------------------------------------------
 # TEST QUERIES USING AGENTS FROM sample_agents.py
 # -----------------------------------------------
 
-response = main_agent.invoke({
+main_agent.invoke({
     "messages": [
-        {"role": "user", "content": """What does this Python program output? 
+        {"role": "user", "content": """
+        What does this Python program output? 
          ```python
          def mystery(n):
             if n <= 1:
                 return n
             return mystery(n-1) + mystery(n-2)
 
-        print(mystery(10))"""}
+        print(mystery(10))```
+        
+        """}
     ]
 })
 
 present_results(tracker.get_report())
 
-
-response = main_agent.invoke({
+main_agent.invoke({
     "messages": [
-        {"role": "user", "content": """What is the solution for the following mathematical problem? 
+        {"role": "user", "content": """ 
          Calculate the exact result of: (452 * 18.5) / 3.2 + 5**3
          """}
     ]
