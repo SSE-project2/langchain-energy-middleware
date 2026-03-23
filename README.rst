@@ -104,6 +104,43 @@ Contributing
 
 Contributions are welcome! Feel free to:
 
-- Report issues
+- Report issues via GitHub issues
 - Suggest features
 - Improve documentation
+
+To build the package locally for testing, you can run:
+
+.. code-block:: bash
+
+    pip install -e .
+
+This will install the package in editable mode, allowing you to test changes without reinstalling. 
+
+Before running some examples, make sure to install Ollama, its models (``qwen3.5:2b``, ``qwen3.5:4b``) and the dependencies for the tutorials first, which can be found in ``tutorials/requirements.txt``. Detailed installation instructions can be found in the tutorial pages.
+You can then run the multi-agent tutorial to see the middleware in action:
+
+.. code-block:: bash
+
+    python tutorials/sample_queries.py
+
+Or, if you want to see the streamlit dashboard, you can run:
+
+.. code-block:: bash
+
+    streamlit run tutorials/streamlit_visualisation.py
+
+Lastly, if you want to build the documentation locally, first install the dependencies for documentation:
+
+.. code-block:: bash
+
+    pip install sphinx sphinx-rtd-theme 
+
+Then, you can run:
+
+.. code-block:: bash
+
+    make html
+
+The built documentation will be available in the ``docs/build/html`` directory. You can open the ``index.html`` file in your browser to view it.
+
+*Note*: All of the commands above assume you are in the root directory of the project.
