@@ -37,7 +37,7 @@ Initialize the tracker:
 
 .. code-block:: python
 
-    from energy_middleware.middleware import EnergyMiddleware
+    from energy_middleware import EnergyMiddleware
 
     tracker = EnergyMiddleware()
 
@@ -235,7 +235,7 @@ Before we run some test queries, let's define a helper function to display the e
 
     from collections import defaultdict
 
-    from energy_middleware.middleware import EnergyDataPoint
+    from energy_middleware import EnergyDataPoint
 
     def present_results(report: list[EnergyDataPoint]) -> None:
         """
