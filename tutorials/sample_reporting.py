@@ -11,7 +11,7 @@ def present_results(report: list[EnergyDataPoint]) -> None:
     are shown together.
 
     Attributes:
-        report (list[EnergyDataPoint]): A list of `Datapoint` instances collected
+        report (list[EnergyDataPoint]): A list of `EnergyDataPoint` instances collected
             from the `EnergyMiddleware`.
     """
     grouped: dict[str, list[EnergyDataPoint]] = defaultdict(list[EnergyDataPoint])

@@ -30,7 +30,7 @@ Key Features
 - Supports nested agent calls via prompt tracking
 - Works with multi-agent architectures
 - Thread-safe and lightweight
-- Provides structured outputs via :class:`middleware.Datapoint`
+- Provides structured outputs via :class:`middleware.EnergyDataPoint`
 
 
 Installation
@@ -75,7 +75,7 @@ Start tracking energy usage in your agent system in just a few lines:
 
 The energy middleware tracker will be called after all model calls, including nested ones, and will log token usage, energy, and CO₂ for each call.
 
-Thereafter, each model call produces a :class:`middleware.Datapoint` containing:
+Thereafter, each model call produces a :class:`middleware.EnergyDataPoint` containing:
 
 - Token usage (input/output)
 - Estimated energy consumption
