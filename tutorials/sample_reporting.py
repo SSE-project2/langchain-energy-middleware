@@ -1,8 +1,18 @@
 from collections import defaultdict
 
-from middleware import Datapoint
+from energy_middleware.middleware import Datapoint
 
 def present_results(report: list[Datapoint]) -> None:
+    """
+    Print a human-readable summary of energy and CO2 usage for a list of datapoints.
+
+    Groups the datapoints by `prompt_id` so that nested agent/model calls
+    are shown together.
+
+    Attributes:
+        report (list[Datapoint]): A list of `Datapoint` instances collected
+            from the `EnergyMiddleware`.
+    """
     grouped: dict[str, list[Datapoint]] = defaultdict(list[Datapoint])
     for dp in report:
         grouped[dp.prompt_id].append(dp)

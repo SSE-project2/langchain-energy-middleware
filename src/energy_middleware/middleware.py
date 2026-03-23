@@ -9,6 +9,21 @@ from pydantic import BaseModel
 from langgraph.config import get_config
 
 class Datapoint(BaseModel):
+    """
+    Measurement of estimated energy usage and environmental impact
+    for a single model call.
+
+    Attributes:
+        input_token_count (int): Number of input tokens processed.
+        output_token_count (int): Number of output tokens generated.
+        estimated_energy_joule (float): Estimated energy usage in Joules.
+        estimated_co2e_kg (float): Estimated CO2 emissions in kilograms.
+        model_name (str): Name of the model used.
+        timestamp (datetime.datetime): Time when the datapoint was recorded.
+        message (str): Truncated model output message (first 100 chars).
+        prompt_id (str): Identifier linking agent calls stemming from the same original prompt.
+        agent_name (str): Name of the agent that generated the output.
+    """
     input_token_count: int
     output_token_count: int
     estimated_energy_joule: float
@@ -21,6 +36,16 @@ class Datapoint(BaseModel):
 
 
 class GroupSummary(BaseModel):
+    """
+    Aggregated summary of energy and token usage for a group of datapoints.
+    
+    Attributes:
+        name (str): Name of the group.
+        total_energy_joule (float): Total estimated energy usage in Joules
+        total_co2e_kg (float): Total estimated CO2 emissions in kilograms.
+        total_input_tokens (int): Total number of input tokens.
+        total_output_tokens (int): Total number of output tokens.
+    """
     name: str
     total_energy_joule: float
     total_co2e_kg: float
@@ -29,6 +54,14 @@ class GroupSummary(BaseModel):
     datapoint_count: int
 
 class EnergyMiddleware(AgentMiddleware):
+    """
+    Middleware that tracks token usage, estimates energy consumption,
+    and calculates associated CO2 emissions for agent model calls.
+
+    This middleware maintains a thread-safe list of datapoints and
+    supports nested agent calls using a prompt ID stack.
+    """
+
     def __init__(self):
         super().__init__()
         self.datapoints: list[Datapoint] = []
@@ -38,10 +71,26 @@ class EnergyMiddleware(AgentMiddleware):
 
     @property
     def _current_prompt_id(self) -> str | None:
+        """
+        Get the current prompt ID from the stack. 
+
+        Returns:
+            str | None: The current prompt ID, or None if the stack is empty.
+        """
         with self._lock:
             return self._prompt_id_stack[-1] if self._prompt_id_stack else None
 
     def _filter_datapoints(self, last_n_prompts, last_n_hours):
+        """
+        Filter datapoints based on recent prompts or time.
+        
+        Args:
+            last_n_prompts (int | None): If set, only include datapoints from the last N top-level prompts.
+            last_n_hours (float | None): If set, only include datapoints from the last N hours.
+
+        Returns:
+            list[Datapoint]: A filtered list of datapoints based on the provided criteria.
+        """
         with self._lock:
             points = self.datapoints.copy()
             recent_ids = set(self._prompt_order[-last_n_prompts:]) if last_n_prompts is not None else None
@@ -54,6 +103,16 @@ class EnergyMiddleware(AgentMiddleware):
         return points
 
     def _group_datapoints(self, points: list[Datapoint], key: str) -> list[GroupSummary]:
+        """
+        Group datapoints by a specified key (model_name or agent_name) and aggregates energy/token usage.
+        
+        Args:
+            points (list[Datapoint]): List of datapoints to group.
+            key (str): Attribute to group by ("model_name" or "agent_name").
+
+        Returns:
+            list[GroupSummary]: A list of aggregated summaries for each group.
+        """
         buckets: dict[str, GroupSummary] = {}
         for dp in points:
             name = getattr(dp, key)
@@ -75,6 +134,19 @@ class EnergyMiddleware(AgentMiddleware):
         return list(buckets.values())
 
     def before_agent(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        """
+        Hook executed before an agent runs.
+
+        Ensures that a prompt ID is assigned and propagated through
+        nested agent calls.
+
+        Args:
+            state (AgentState): Current agent state.
+            runtime (Runtime): Runtime context.
+
+        Returns:
+            dict[str, Any] | None: Optional state updates (unused).
+        """
         existing_id = self._current_prompt_id
 
         if existing_id:
@@ -89,12 +161,37 @@ class EnergyMiddleware(AgentMiddleware):
         return None
 
     def after_agent(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        """
+        Hook executed after an agent finishes.
+
+        Removes the latest prompt ID from the stack.
+
+        Args:
+            state (AgentState): Current agent state.
+            runtime (Runtime): Runtime context.
+
+        Returns:
+            dict[str, Any] | None: Optional state updates (unused).
+        """
         with self._lock:
             if self._prompt_id_stack:
                 self._prompt_id_stack.pop()
         return None
 
     def after_model(self, state: AgentState, runtime: Runtime) -> dict[str, Any] | None:
+        """
+        Hook executed after a model generates a response.
+
+        Extracts token usage, estimates energy and emissions, and
+        records a datapoint for a model call.
+
+        Args:
+            state (AgentState): Current agent state containing messages.
+            runtime (Runtime): Runtime context.
+
+        Returns:
+            dict[str, Any] | None: Optional state updates (unused).
+        """
         last_message = state["messages"][-1]
         model_name = last_message.response_metadata.get("model_name", "unknown_model")
         input_token_count = last_message.usage_metadata.get("input_tokens", 0)
@@ -129,19 +226,34 @@ class EnergyMiddleware(AgentMiddleware):
     # ── Raw ────────────────────────────────────────────────────────────
 
     def get_report(self) -> list[Datapoint]:
-        """All raw datapoints in order."""
+        """
+        Retrieve a copy of all collected datapoints.
+
+        Returns:
+            list[Datapoint]: A copy of the recorded datapoints.
+        """
         with self._lock:
             return self.datapoints.copy()
-
+        
     def get_prompt_count(self) -> int:
-        """Number of top-level prompts seen so far."""
+        """
+        Number of top-level prompts seen so far.
+        
+        Returns:
+            int: Count of unique top-level prompts.
+        """
         with self._lock:
             return len(self._prompt_order)
 
     # ── Totals ────────────────────────────────────────────────────
 
     def get_totals(self) -> dict[str, float | int]:
-        """Returns all totals in a single pass over the datapoints."""
+        """
+        Returns all total accumulated over the collected datapoints.
+        
+        Returns:
+            dict[str, float | int]: A dictionary containing total energy (J), total CO2 (kg), total input tokens, and total output tokens.
+        """
         total_energy = 0.0
         total_co2 = 0.0
         total_input_tokens = 0
@@ -158,17 +270,41 @@ class EnergyMiddleware(AgentMiddleware):
             "input_tokens": total_input_tokens,
             "output_tokens": total_output_tokens,
         }
-
+    
     def get_total_energy(self) -> float:
+        """
+        Get the total estimated energy consumption of all collected datapoints in Joules.
+
+        Returns:
+            float: Total estimated energy in Joules.
+        """
         return self.get_totals()["energy"]
 
     def get_total_co2(self) -> float:
+        """
+        Get the total estimated CO2 emissions of all collected datapoints in kilograms.
+
+        Returns:
+            float: Total estimated CO2 emissions in kilograms.
+        """
         return self.get_totals()["co2"]
 
     def get_total_input_tokens(self) -> int:
+        """
+        Get the total number of input tokens across all collected datapoints.
+
+        Returns:
+            int: Total number of input tokens.
+        """
         return self.get_totals()["input_tokens"]
 
     def get_total_output_tokens(self) -> int:
+        """
+        Get the total number of output tokens across all collected datapoints.
+
+        Returns:
+            int: Total number of output tokens.
+        """
         return self.get_totals()["output_tokens"]
 
     # ── Grouped / filtered  Summary ───────────────────────────────────────────────────────
@@ -191,6 +327,24 @@ class EnergyMiddleware(AgentMiddleware):
         return self._group_datapoints(points, group_by)
 
 def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: str) -> tuple[float, float]:
+    """
+    Estimate energy consumption and CO2 emissions for a model inference.
+
+    The estimation is based on:
+    - FLOPs per token approximation for transformer models
+    - Assumed hardware efficiency (FLOPs per Joule)
+    - Global average carbon intensity
+
+    Args:
+        input_tokens (int): Number of input tokens.
+        output_tokens (int): Number of output tokens.
+        model (str): Model identifier used to determine parameter count.
+
+    Returns:
+        tuple[float, float]:
+            - Total energy consumption in Joules
+            - Estimated CO2 emissions in kilograms
+    """
     # Carbon Intensity
     # Global average carbon intensity: 0.45 kg CO2 / kWh
     # Conversion: 1 kWh = 3,600,000 Joules
