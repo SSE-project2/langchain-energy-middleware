@@ -3,7 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from sample_agents import main_agent, tracker
-from src.energy_middleware.middleware import GroupSummary
+from src.energy_middleware.middleware import EnergyGroupSummary
 
 st.title("Agent chat")
 
@@ -62,7 +62,7 @@ with st.sidebar:
 
         tab1, tab2, tab3 = st.tabs(["By model", "By agent", "Raw"])
 
-        def show_chart(summaries: list[GroupSummary], title: str, key: str) -> None:
+        def show_chart(summaries: list[EnergyGroupSummary], title: str, key: str) -> None:
             if not summaries:
                 st.caption("No data for this selection.")
                 return

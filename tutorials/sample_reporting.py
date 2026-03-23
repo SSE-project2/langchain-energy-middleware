@@ -1,8 +1,9 @@
 from collections import defaultdict
 
-from src.energy_middleware.middleware import Datapoint
+from src.energy_middleware.middleware import EnergyDataPoint
 
-def present_results(report: list[Datapoint]) -> None:
+
+def present_results(report: list[EnergyDataPoint]) -> None:
     """
     Print a human-readable summary of energy and CO2 usage for a list of datapoints.
 
@@ -10,10 +11,10 @@ def present_results(report: list[Datapoint]) -> None:
     are shown together.
 
     Attributes:
-        report (list[Datapoint]): A list of `Datapoint` instances collected
+        report (list[EnergyDataPoint]): A list of `Datapoint` instances collected
             from the `EnergyMiddleware`.
     """
-    grouped: dict[str, list[Datapoint]] = defaultdict(list[Datapoint])
+    grouped: dict[str, list[EnergyDataPoint]] = defaultdict(list[EnergyDataPoint])
     for dp in report:
         grouped[dp.prompt_id].append(dp)
 
