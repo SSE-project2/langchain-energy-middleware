@@ -21,8 +21,6 @@ main_agent.invoke({
     ]
 })
 
-present_results(tracker.get_report())
-
 main_agent.invoke({
     "messages": [
         {"role": "user", "content": """ 

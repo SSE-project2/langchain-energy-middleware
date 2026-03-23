@@ -4,9 +4,9 @@ import uuid
 from typing import Any, Literal
 
 from langchain.agents.middleware import AgentState, AgentMiddleware
+from langgraph.config import get_config
 from langgraph.runtime import Runtime
 from pydantic import BaseModel
-from langgraph.config import get_config
 
 from energy_estimation_model import estimate_energy_and_emissions
 

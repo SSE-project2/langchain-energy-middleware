@@ -26,7 +26,7 @@ def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: 
     # Hardware Efficiency Assumption (Consumer GPU Baseline) NVIDIA RTX 4070 specifications obtained online
     # FP16 (half precision) throughput: 29.15 TFLOPs
     # TDP (Thermal Design Power): 200 W
-    #
+
     # FLOPs per Joule = FLOPs per second / Watts = (29.15e12 FLOPs/s) / 200 W
     # ≈ 1.46e11 FLOPs per Joule (theoretical peak)
     FLOPS_PER_JOULE = 1.46e11  # RTX 4070 FP16 peak efficiency
@@ -34,7 +34,6 @@ def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: 
     # Transformer Inference Compute Approximation used in transformer literature:
     # FLOPs per token ≈ 2 × number_of_parameters (Forward pass only; training typically ≈ 6P)
     # Assumes dense models
-    # More models could be added later, the number of parameters is usually in the name.
     MODEL_PARAMETERS = {
         "qwen3.5:4b": 4_000_000_000,
         "qwen3.5:2b": 2_000_000_000,

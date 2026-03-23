@@ -269,16 +269,19 @@ Example: execute a Python program and track energy usage:
 
 .. code-block:: python
 
-    response = main_agent.invoke({
+    main_agent.invoke({
         "messages": [
-            {"role": "user", "content": """What does this Python program output? 
-            ```python
-            def mystery(n):
+            {"role": "user", "content": """
+            What does this Python program output?
+             ```python
+             def mystery(n):
                 if n <= 1:
                     return n
                 return mystery(n-1) + mystery(n-2)
 
-            print(mystery(10))"""}
+            print(mystery(10))```
+
+            """}
         ]
     })
 
@@ -290,10 +293,11 @@ Example: solve a math problem:
 
 .. code-block:: python
 
-    response = main_agent.invoke({
+    main_agent.invoke({
         "messages": [
-            {"role": "user", "content": """What is the solution for the following mathematical problem? 
-            Calculate the exact result of: (452 * 18.5) / 3.2 + 5**3"""}
+            {"role": "user", "content": """
+             Calculate the exact result of: (452 * 18.5) / 3.2 + 5**3
+             """}
         ]
     })
 

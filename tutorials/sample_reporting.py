@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from src.energy_middleware.middleware import Datapoint
 
-
 def present_results(report: list[Datapoint]) -> None:
     """
     Print a human-readable summary of energy and CO2 usage for a list of datapoints.
