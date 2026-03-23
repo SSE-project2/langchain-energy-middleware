@@ -8,10 +8,11 @@ version = "0.1.0"
 description = "Energy and CO2 tracking middleware for LLM agents"
 readme = "README.rst"
 authors = [{name = "Samuel van den Houten, Jan Kuhta, Andrea Vezzuto, Aadesh Ramai, Rodrigo Montero González"}]
-requires-python = ">=3.9"
-
+requires-python = ">=3.10"
 dependencies = [
-    "langchain>=0.1.0",
+  "langchain>=1.2.13",
+  "langgraph>=1.1.3",
+  "pydantic>=2.12.5"
 ]
 
 [tool.setuptools.packages.find]

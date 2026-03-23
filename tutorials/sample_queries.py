@@ -1,5 +1,5 @@
 from sample_agents import main_agent, tracker
-from tutorials.reporting import present_results
+from sample_reporting import present_results
 
 # -----------------------------------------------
 # TEST QUERIES USING AGENTS FROM sample_agents.py

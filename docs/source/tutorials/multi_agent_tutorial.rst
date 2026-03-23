@@ -229,11 +229,45 @@ As usual, we include ``middleware=[tracker]`` to ennsure that calls are logged f
 Testing Queries
 ---------------
 
+Before we run some test queries, let's define a helper function to display the energy and CO₂ report in a readable format:
+
+.. code-block:: python
+
+    from collections import defaultdict
+
+    from energy_middleware.middleware import Datapoint
+
+    def present_results(report: list[Datapoint]) -> None:
+        """
+        Print a human-readable summary of energy and CO2 usage for a list of datapoints.
+
+        Groups the datapoints by `prompt_id` so that nested agent/model calls
+        are shown together.
+
+        Attributes:
+            report (list[Datapoint]): A list of `Datapoint` instances collected
+                from the `EnergyMiddleware`.
+        """
+        grouped: dict[str, list[Datapoint]] = defaultdict(list[Datapoint])
+        for dp in report:
+            grouped[dp.prompt_id].append(dp)
+
+        for prompt_id, points in grouped.items():
+            print(f"\nPrompt [{prompt_id}]:")
+            for dp in points:
+                print(f"  [{dp.model_name}] {dp.message}")  # If we have multiple models for the sub-prompts, that will change here
+                print(f'  Energy: {dp.estimated_energy_joule} J')
+                print(f'  CO2: {dp.estimated_co2e_kg} gCO2e')
+                print(f'  Input: {dp.input_token_count} tokens')
+                print(f'  Output: {dp.output_token_count} tokens')
+                print(f'  Timestamp: {dp.timestamp}\n')
+                print(f'  Prompt ID: {dp.prompt_id}\n')
+                print(f'  Agent Name: {dp.agent_name}\n')
+
+
 Example: execute a Python program and track energy usage:
 
 .. code-block:: python
-    
-    from energy_middleware.reporting import present_results
 
     response = main_agent.invoke({
         "messages": [
@@ -250,7 +284,7 @@ Example: execute a Python program and track energy usage:
 
     present_results(tracker.get_report())
 
-- The ``present_results`` function prints **energy, CO₂, tokens, prompt IDs, and agent name** for each call.
+- Via the function above, the ``present_results`` function nicely prints **energy, CO₂, tokens, prompt IDs, and agent name** for each call.
 
 Example: solve a math problem:
 
