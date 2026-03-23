@@ -6,7 +6,6 @@ in a multi-agent LangChain setup with Python and math subagents.
 
 Prerequisites
 -------------
--------------
 
 We will be using Ollama models in this tutorial, so make sure you have it installed. It can be downloaded from https://ollama.com/.
 Additionally, make sure you have the following modules installed:
