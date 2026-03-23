@@ -24,7 +24,7 @@ Make sure you have installed:
 You should also already have:
 
 - A working agent setup (see "Using EnergyMiddleware with Multi-Agent Setup" tutorial). In this example we import it from a ``sample_agents`` file previously created from the multi-agent tutorial, but you can use your own
-- A shared :class:`energy_middleware.middleware.EnergyMiddleware` instance (``tracker``)
+- A shared :class:`energy_middleware.models.EnergyMiddleware` instance (``tracker``)
 
 Overview
 --------
@@ -100,7 +100,7 @@ At any point, we can retrieve the tracked data:
 
     report = tracker.get_report()
 
-This returns a list of :class:`energy_middleware.middleware.Datapoint` objects, each representing
+This returns a list of :class:`energy_middleware.middleware.EnergyDataPoint` objects, each representing
 a single model call.
 
 

@@ -23,6 +23,8 @@ tracks energy usage and CO2 emissions for agent/model calls.
     :maxdepth: 1
 
     documentation/energy_middleware
+    documentation/energy_estimation_model
+    documentation/models
 
 .. toctree::
     :caption: Tutorials

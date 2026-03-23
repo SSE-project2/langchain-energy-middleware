@@ -4,6 +4,6 @@ Energy Middleware
 The `EnergyMiddleware` tracks token usage, estimates energy consumption,
 and calculates CO2 emissions for agent calls.
 
-.. automodule:: middleware
+.. autoclass:: middleware.EnergyMiddleware
    :members:
    :show-inheritance:

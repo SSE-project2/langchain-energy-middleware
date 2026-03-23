@@ -6,6 +6,7 @@ in a multi-agent LangChain setup with Python and math subagents.
 
 Prerequisites
 -------------
+-------------
 
 We will be using Ollama models in this tutorial, so make sure you have it installed. It can be downloaded from https://ollama.com/.
 Additionally, make sure you have the following modules installed:
@@ -235,9 +236,9 @@ Before we run some test queries, let's define a helper function to display the e
 
     from collections import defaultdict
 
-    from energy_middleware.middleware import Datapoint
+    from energy_middleware.middleware import EnergyDataPoint
 
-    def present_results(report: list[Datapoint]) -> None:
+    def present_results(report: list[EnergyDataPoint]) -> None:
         """
         Print a human-readable summary of energy and CO2 usage for a list of datapoints.
 
@@ -245,17 +246,17 @@ Before we run some test queries, let's define a helper function to display the e
         are shown together.
 
         Attributes:
-            report (list[Datapoint]): A list of `Datapoint` instances collected
+            report (list[EnergyDataPoint]): A list of `EnergyDataPoint` instances collected
                 from the `EnergyMiddleware`.
         """
-        grouped: dict[str, list[Datapoint]] = defaultdict(list[Datapoint])
+        grouped: dict[str, list[EnergyDataPoint]] = defaultdict(list[EnergyDataPoint])
         for dp in report:
             grouped[dp.prompt_id].append(dp)
 
         for prompt_id, points in grouped.items():
             print(f"\nPrompt [{prompt_id}]:")
             for dp in points:
-                print(f"  [{dp.model_name}] {dp.message}")  # If we have multiple models for the sub-prompts, that will change here
+                print(f"  [{dp.model_name}] {dp.message}")
                 print(f'  Energy: {dp.estimated_energy_joule} J')
                 print(f'  CO2: {dp.estimated_co2e_kg} gCO2e')
                 print(f'  Input: {dp.input_token_count} tokens')
