@@ -7,8 +7,8 @@ from langchain.agents.middleware import AgentState, AgentMiddleware
 from langgraph.config import get_config
 from langgraph.runtime import Runtime
 
-from src.energy_middleware import EnergyDataPoint, EnergyGroupSummary
-from src.energy_middleware.energy_estimation_model import estimate_energy_and_emissions
+from .energy_estimation_model import estimate_energy_and_emissions
+from .models import EnergyDataPoint, EnergyGroupSummary
 
 
 class EnergyMiddleware(AgentMiddleware):

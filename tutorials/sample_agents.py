@@ -7,7 +7,7 @@ from langchain.tools import tool
 from langchain_ollama import ChatOllama
 from sympy import sympify
 
-from src.energy_middleware.middleware import EnergyMiddleware
+from energy_middleware import EnergyMiddleware
 
 # Basic multiagent setup for testing
 # https://dev.to/fabiothiroki/run-langchain-locally-in-15-minutes-without-a-single-api-key-1j8m

@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from src.energy_middleware.middleware import EnergyDataPoint
+from energy_middleware import EnergyDataPoint
 
 
 def present_results(report: list[EnergyDataPoint]) -> None:

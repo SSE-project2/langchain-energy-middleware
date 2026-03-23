@@ -7,7 +7,7 @@ cachetools==7.0.5
 certifi==2026.2.25
 charset-normalizer==3.4.6
 click==8.3.1
--e git+https://github.com/SSE-project2/langchain-energy-middleware.git@96e9148b50830fe43f222d7cf0af659b7fdb101e#egg=energy_middleware
+-e .
 gitdb==4.0.12
 GitPython==3.1.46
 h11==0.16.0
