@@ -163,3 +163,7 @@ Then, build the docs from the root directory:
     make html
 
 The built documentation will be available in the ``docs/build/html`` directory. You can open the ``index.html`` file in your browser to view it.
+
+License
+---------
+This project uses the `MIT License <LICENSE>`_
