@@ -23,11 +23,11 @@ def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: 
     # 0.45 / 3,600,000 ≈ 1.25e-7 kg CO2 per Joule
     co2e_per_joule = 1.25e-7  # kg CO2 per Joule
 
-    # Hardware Efficiency Assumption (Datacenter GPU Baseline - NVIDIA H100) specifications obtained online
-    # FP16 (half precision) throughput: 1979 TFLOPs
+    # Hardware Efficiency Assumption (Datacenter-Grade GPU Baseline) NVIDIA H100 specifications obtained online
+    # FP16 (half precision) throughput: 1,979 TFLOPs
     # TDP (Thermal Design Power): 700 W
 
-    # FLOPs per Joule = FLOPs per second / Watts = (1979e12 FLOPs/s) / 700 W
+    # FLOPs per Joule = FLOPs per second / Watts = (1.979e15 FLOPs/s) / 700 W
     # ≈ 2.83e12 FLOPs per Joule (theoretical peak)
     FLOPS_PER_JOULE = 2.83e12  # H100 FP16 peak efficiency
 
