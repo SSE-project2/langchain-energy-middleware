@@ -23,13 +23,13 @@ def estimate_energy_and_emissions(input_tokens: int, output_tokens: int, model: 
     # 0.45 / 3,600,000 ≈ 1.25e-7 kg CO2 per Joule
     co2e_per_joule = 1.25e-7  # kg CO2 per Joule
 
-    # Hardware Efficiency Assumption (Consumer GPU Baseline) NVIDIA RTX 4070 specifications obtained online
-    # FP16 (half precision) throughput: 29.15 TFLOPs
-    # TDP (Thermal Design Power): 200 W
+    # Hardware Efficiency Assumption (Datacenter-Grade GPU Baseline) NVIDIA H100 specifications obtained online
+    # FP16 (half precision) throughput: 1,979 TFLOPs
+    # TDP (Thermal Design Power): 700 W
 
-    # FLOPs per Joule = FLOPs per second / Watts = (29.15e12 FLOPs/s) / 200 W
-    # ≈ 1.46e11 FLOPs per Joule (theoretical peak)
-    FLOPS_PER_JOULE = 1.46e11  # RTX 4070 FP16 peak efficiency
+    # FLOPs per Joule = FLOPs per second / Watts = (1.979e15 FLOPs/s) / 700 W
+    # ≈ 2.83e12 FLOPs per Joule (theoretical peak)
+    FLOPS_PER_JOULE = 2.83e12  # H100 FP16 peak efficiency
 
     # Transformer Inference Compute Approximation used in transformer literature:
     # FLOPs per token ≈ 2 × number_of_parameters (Forward pass only; training typically ≈ 6P)
