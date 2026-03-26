@@ -1,8 +1,8 @@
-LangChain Energy Middleware
+Jamanota Energy Middleware
 ===========================
 
-Welcome to the documentation for LangChain Energy Middleware. This project
-tracks energy usage and CO2 emissions for agent/model calls.
+Welcome to the documentation for Jamanota Energy Middleware. This project
+tracks energy usage and CO2 emissions for agent/model calls in LangChain.
 
 .. toctree::
     :caption: Introduction

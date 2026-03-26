@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from energy_middleware import EnergyDataPoint
+from jamanota import EnergyDataPoint
 
 
 def present_results(report: list[EnergyDataPoint]) -> None:

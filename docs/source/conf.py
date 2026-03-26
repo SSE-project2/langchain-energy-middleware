@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'EnergyMiddleware'
+project = 'Jamanota Energy Middleware'
 copyright = '2026, Samuel van den Houten, Jan Kuhta, Andrea Vezzuto, Aadesh Ramai, Rodrigo Montero González'
 author = 'Samuel van den Houten, Jan Kuhta, Andrea Vezzuto, Aadesh Ramai, Rodrigo Montero González'
 

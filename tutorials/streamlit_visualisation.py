@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from energy_middleware import EnergyGroupSummary
+from jamanota import EnergyGroupSummary
 from sample_agents import main_agent, tracker
 
 st.title("Agent chat")

@@ -1,8 +1,8 @@
-EnergyMiddleware
-================
+Jamanota Energy Middleware
+==========================
 
-**EnergyMiddleware** is a lightweight Python middleware for tracking
-energy consumption and CO₂ emissions of LLM-based agent systems.
+**Jamanota Energy Middleware** is a lightweight Python middleware for tracking
+energy consumption and CO₂ emissions of LLM-based agent systems in LangChain.
 
 It integrates with agent frameworks to record token usage,
 estimated energy consumption, and environmental impact for every model call.
@@ -15,7 +15,7 @@ Modern AI systems, especially multi-agent LLM workflows, can involve
 complex chains of model calls. Understanding their computational cost
 and environmental impact is increasingly important.
 
-EnergyMiddleware provides:
+Jamanota provides:
 
 - Transparent tracking of token usage
 - Energy estimation based on model size and compute assumptions
@@ -30,7 +30,7 @@ Key Features
 - Supports nested agent calls via prompt tracking
 - Works with multi-agent architectures
 - Thread-safe and lightweight
-- Provides structured outputs via :class:`middleware.EnergyDataPoint`
+- Provides structured outputs via ``jamanota.middleware.EnergyDataPoint``
 
 
 Installation
@@ -38,7 +38,7 @@ Installation
 
 .. code-block:: bash
 
-    pip install energy-middleware
+    pip install jamanota
 
 
 Quick Example
@@ -51,7 +51,7 @@ Start tracking energy usage in your agent system in just a few lines:
     from langchain.agents import create_agent
     from langchain_ollama import ChatOllama
 
-    from energy_middleware.middleware import EnergyMiddleware
+    from jamanota.middleware import EnergyMiddleware
 
     tracker = EnergyMiddleware()
 
@@ -75,7 +75,7 @@ Start tracking energy usage in your agent system in just a few lines:
 
 The energy middleware tracker will be called after all model calls, including nested ones, and will log token usage, energy, and CO₂ for each call.
 
-Thereafter, each model call produces a :class:`middleware.EnergyDataPoint` containing:
+Thereafter, each model call produces a ``jamanota.middleware.EnergyDataPoint`` containing:
 
 - Token usage (input/output)
 - Estimated energy consumption
@@ -87,7 +87,7 @@ Thereafter, each model call produces a :class:`middleware.EnergyDataPoint` conta
 Use Cases
 ---------
 
-EnergyMiddleware may be useful for:
+Jamanota may be useful for:
 
 - 🔬 Research on efficient AI systems
 - 🌱 Measuring environmental impact of LLMs

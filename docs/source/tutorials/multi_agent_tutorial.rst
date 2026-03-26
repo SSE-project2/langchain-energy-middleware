@@ -1,7 +1,7 @@
-Using EnergyMiddleware with Multi-Agent Setup
+Using Jamanota with Multi-Agent Setup
 =======================================================
 
-This tutorial demonstrates how to use **EnergyMiddleware** to track energy and CO₂ usage
+This tutorial demonstrates how to use **Jamanota** to track energy and CO₂ usage
 in a multi-agent LangChain setup with Python and math subagents. 
 
 Prerequisites
@@ -13,7 +13,7 @@ Additionally, make sure you have the following modules installed:
 - ``langchain``
 - ``langchain_ollama``
 - ``sympy``
-- ``energy_middleware``
+- ``jamanota``
 
 During this tutorial, we will use ``qwen3.5:4b`` for the subagents, and ``qwen3.5:2b`` for the main agent, to simulate a situation where the main agent is slightly less powerful than the subagents. However, you can use any models you have available.
 To set up the Ollama models, you can run the following commands in your terminal:
@@ -37,7 +37,7 @@ Initialize the tracker:
 
 .. code-block:: python
 
-    from energy_middleware import EnergyMiddleware
+    from jamanota import EnergyMiddleware
 
     tracker = EnergyMiddleware()
 
@@ -235,7 +235,7 @@ Before we run some test queries, let's define a helper function to display the e
 
     from collections import defaultdict
 
-    from energy_middleware import EnergyDataPoint
+    from jamanota import EnergyDataPoint
 
     def present_results(report: list[EnergyDataPoint]) -> None:
         """
