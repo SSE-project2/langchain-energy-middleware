@@ -95,6 +95,12 @@ Jamanota may be useful for:
 - 🧪 Profiling experimental pipelines
 
 
+Documentation
+-------------
+
+Detailed documentation is available at https://jamanota.readthedocs.io/en/latest/.
+
+
 Contributing
 ------------
 
