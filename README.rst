@@ -1,5 +1,20 @@
+
 Jamanota Energy Middleware
 ==========================
+|pypi| |docs| |license|
+
+.. |pypi| image:: https://img.shields.io/pypi/v/jamanota
+   :alt: PyPI - Version
+   :target: https://pypi.org/project/jamanota/
+
+.. |docs| image:: https://img.shields.io/readthedocs/jamanota
+   :alt: Read the Docs
+   :target: https://jamanota.readthedocs.io/
+
+.. |license| image:: https://img.shields.io/github/license/SSE-project2/jamanota-energy-middleware
+   :alt: PyPI - License
+   :target: https://github.com/SSE-project2/jamanota-energy-middleware/blob/main/LICENSE
+
 
 **Jamanota Energy Middleware** is a lightweight Python middleware for tracking
 energy consumption and CO₂ emissions of LLM-based agent systems in LangChain.
@@ -172,4 +187,4 @@ The built documentation will be available in the ``docs/build/html`` directory. 
 
 License
 ---------
-This project uses the `MIT License <LICENSE>`_
+This project uses the `MIT License <https://github.com/SSE-project2/jamanota-energy-middleware/blob/main/LICENSE>`_
